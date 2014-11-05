@@ -23,8 +23,17 @@ unless ($ranges and $listIPs and ($list_in_range xor $list_out_range)) {
 
 open(RANGES, $ranges) or die "Cannot open file: $!";
 
-my @ranges = <RANGES>;
-chomp foreach (@ranges);
+my @unsafe_ranges = <RANGES>;
+chomp foreach (@unsafe_ranges);
+my @ranges = grep(/^\d+\.\d+\.\d+\.\d+/,@unsafe_ranges);
+if (scalar(@ranges) != scalar(@unsafe_ranges)) {
+	print STDERR "Warning: Some IPs in the range are fubar.  Original list had ".scalar(@unsafe_ranges).", now I'm using ".scalar(@ranges)."\n";
+}
+foreach my $r (@ranges) {
+	unless ($r =~ /\//) {
+		$r .= '/32';
+	}
+}
 my $matcher = subnet_matcher @ranges;
 
 close(RANGES);
