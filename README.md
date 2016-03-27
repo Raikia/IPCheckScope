@@ -25,6 +25,6 @@ Simple script to check if a list of IPs are within the provided network scopes
 
 ## Support:
    * raikiasec@gmail.com
-   * @raikiasec
+   * [@raikiasec](https://twitter.com/raikiasec)
    * https://github.com/raikia
     
