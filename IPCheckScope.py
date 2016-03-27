@@ -89,7 +89,8 @@ if __name__ == "__main__":
 
     # Process pipped data first
     for ip in pipped_ips:
-        addIfValid(ip, range_info, return_ips, return_inrange)
+        if ip.strip():
+            addIfValid(ip, range_info, return_ips, return_inrange)
 
     # Go through the inputted IPs and check if they are in the range
     if check_ips and os.path.isfile(check_ips):
