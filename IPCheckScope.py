@@ -22,16 +22,16 @@ def getRangeInfo(r):
 def addIfValid(ip, range_info, return_ips, return_inrange):
     try:
         ipobj = int(ipaddress.IPv4Address(ip))
+        inrange = False
+        for rinfo in range_info:
+            inrange = (((ipobj & rinfo[0]) == rinfo[1]) or inrange)
+        if inrange and return_inrange:
+            return_ips.add(ip)
+        elif not inrange and not return_inrange:
+            return_ips.add(ip)
     except ipaddress.AddressValueError:
         print("[!] Error: Invalid IP address: " + str(ip))
         sys.exit(2)
-    inrange = False
-    for rinfo in range_info:
-        inrange = (((ipobj & rinfo[0]) == rinfo[1]) or inrange)
-    if inrange and return_inrange:
-        return_ips.add(ip)
-    elif not inrange and not return_inrange:
-        return_ips.add(ip)
 
 
 if __name__ == "__main__":
@@ -82,9 +82,8 @@ if __name__ == "__main__":
     if os.path.isfile(scope):
         with open(scope) as scopefile:
             for line in scopefile:
-                # .strip() auto-removes newlines if not given something else
-                # to strip
-                range_info.append(getRangeInfo(line.strip()))
+                if line.strip():
+                    range_info.append(getRangeInfo(line.rstrip('\n')))
     else:
         range_info.append(getRangeInfo(scope))
 
@@ -97,7 +96,8 @@ if __name__ == "__main__":
         with open(check_ips) as ipfile:
             for line in ipfile:
                 ip = line.strip()
-                addIfValid(ip, range_info, return_ips, return_inrange)
+                if ip:
+                    addIfValid(ip, range_info, return_ips, return_inrange)
 
     elif check_ips:
         addIfValid(check_ips, range_info, return_ips, return_inrange)
