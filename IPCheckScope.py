@@ -45,22 +45,25 @@ def main(argv):
     if os.path.isfile(scope):
         with open(scope) as scopefile:
             for line in scopefile:
-                range_info.append(getRangeInfo(line.rstrip('\n')))
+                if line.strip():
+                    range_info.append(getRangeInfo(line.rstrip('\n')))
     else:
         range_info.append(getRangeInfo(scope))
 
     # Process pipped data first
     for ip in pipped_ips:
-        addIfValid(ip, range_info, return_ips, return_inrange)
+        if ip.strip():
+            addIfValid(ip, range_info, return_ips, return_inrange)
 
     # Go through the inputted IPs and check if they are in the range
-    if os.path.isfile(check_ips):
+    if check_ips and os.path.isfile(check_ips):
         with open(check_ips) as ipfile:
             for line in ipfile:
-                ip = line.rstrip('\n')
-                addIfValid(ip, range_info, return_ips, return_inrange)
+                ip = line.strip()
+                if ip:
+                    addIfValid(ip, range_info, return_ips, return_inrange)
 
-    else:
+    elif check_ips:
         addIfValid(check_ips, range_info, return_ips, return_inrange)
 
     # Print resulting IP addresses
@@ -73,7 +76,7 @@ def getRangeInfo(r):
         robj = ipaddress.IPv4Network(r, strict=False)
         return [int(robj.netmask), int(robj.network_address)]
     except:
-        print("[!] Error: Invalid IP Network Range: " + str(line))
+        print("[!] Error: Invalid IP Network Range: " + str(r))
         sys.exit(2)
 
 # AddIfValid checks if an IP is within the range info given and will add it to return_ips
