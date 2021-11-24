@@ -4,6 +4,7 @@
 import argparse
 import ipaddress
 import os
+import socket
 import sys
 
 
@@ -13,8 +14,14 @@ def getRangeInfo(r):
         robj = ipaddress.IPv4Network(r, strict=False)
         return [int(robj.netmask), int(robj.network_address)]
     except ipaddress.AddressValueError:
-        print("[!] Error: Invalid IP Network Range: " + str(r))
-        sys.exit(2)
+        try:
+            ip_addresses = getIpAddressesFromHostname(r)
+            for ip in ip_addresses[2]:
+                robj = ipaddress.IPv4Network(ip, strict=False)
+                return [int(robj.netmask), int(robj.network_address)]
+        except:
+            print(f"[!] Error: Invalid IP Network Range:{r}")
+            sys.exit(2)
 
 
 # AddIfValid checks if an IP is within the range info
@@ -30,9 +37,32 @@ def addIfValid(ip, range_info, return_ips, return_inrange):
         elif not inrange and not return_inrange:
             return_ips.add(ip)
     except ipaddress.AddressValueError:
-        print("[!] Error: Invalid IP address: " + str(ip))
+        try:
+            ip_addresses = getIpAddressesFromHostname(ip)
+            for ip in ip_addresses[2]:
+                ipobj = int(ipaddress.IPv4Address(ip))
+                inrange = False
+                for rinfo in range_info:
+                    inrange = (((ipobj & rinfo[0]) == rinfo[1]) or inrange)
+                if inrange and return_inrange:
+                    return_ips.add(ip)
+                elif not inrange and not return_inrange:
+                    return_ips.add(ip)
+        except:
+                sys.exit(2)
+
+
+def getIpAddressesFromHostname(hostname):
+    ip_addresses = []
+    try:
+        resolutions = socket.gethostbyname_ex(hostname)
+        for ip in resolutions:
+            ip_addresses.append(ip)
+    except Exception as e:
+        print(f"[!] Error resolving {hostname}: {e}")
         sys.exit(2)
 
+    return ip_addresses
 
 if __name__ == "__main__":
     # Define variables
